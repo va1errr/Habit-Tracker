@@ -92,7 +92,12 @@ class HabitControllerTest {
                                     "name": "Reading"
                                 }
                                 """))
-                .andExpect(status().isConflict());
+                .andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("Habit name already exists!"))
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors").isEmpty());
 
         verify(habitService).createHabit("Reading", null);
     }
