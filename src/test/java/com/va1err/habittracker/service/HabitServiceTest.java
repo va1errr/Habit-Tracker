@@ -1,6 +1,7 @@
 package com.va1err.habittracker.service;
 
 import com.va1err.habittracker.entity.Habit;
+import com.va1err.habittracker.exception.DuplicateHabitNameException;
 import com.va1err.habittracker.exception.InvalidHabitNameException;
 import com.va1err.habittracker.repository.HabitRepository;
 import org.junit.jupiter.api.Test;
@@ -12,8 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class HabitServiceTest {
@@ -67,6 +67,15 @@ class HabitServiceTest {
     void createHabit_shouldRejectNullName() {
         assertThrows(InvalidHabitNameException.class, () -> habitService.createHabit(null, null));
         verifyNoInteractions(habitRepository);
+    }
+
+    @Test
+    void createHabit_shouldRejectDuplicateName() {
+        when(habitRepository.existsByNameIgnoreCase("Reading")).thenReturn(true);
+
+        assertThrows(DuplicateHabitNameException.class, () -> habitService.createHabit("  Reading ", null));
+        verify(habitRepository).existsByNameIgnoreCase("Reading");
+        verify(habitRepository, never()).save(any(Habit.class));
     }
 
 }

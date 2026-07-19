@@ -1,6 +1,7 @@
 package com.va1err.habittracker.service;
 
 import com.va1err.habittracker.entity.Habit;
+import com.va1err.habittracker.exception.DuplicateHabitNameException;
 import com.va1err.habittracker.exception.InvalidHabitNameException;
 import com.va1err.habittracker.repository.HabitRepository;
 
@@ -18,6 +19,10 @@ public class HabitService {
         }
 
         String normalizedName = name.strip();
+
+        if (habitRepository.existsByNameIgnoreCase(normalizedName)) {
+            throw new DuplicateHabitNameException();
+        }
 
         Habit habit = new Habit(normalizedName, description, true);
         return habitRepository.save(habit);
