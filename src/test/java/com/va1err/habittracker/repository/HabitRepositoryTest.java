@@ -7,6 +7,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(
@@ -25,4 +26,12 @@ class HabitRepositoryTest {
         assertNotNull(savedHabit.getId());
     }
 
+    @Test
+    void existsByNameIgnoreCase_shouldIgnoreCase() {
+        Habit habit = new Habit("Reading", null, true);
+        habitRepository.saveAndFlush(habit);
+
+        assertTrue(habitRepository.existsByNameIgnoreCase("rEaDiNg"));
+    }
+    
 }
