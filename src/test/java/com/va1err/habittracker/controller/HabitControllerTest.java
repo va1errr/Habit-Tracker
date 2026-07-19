@@ -1,6 +1,7 @@
 package com.va1err.habittracker.controller;
 
 import com.va1err.habittracker.entity.Habit;
+import com.va1err.habittracker.exception.DuplicateHabitNameException;
 import com.va1err.habittracker.service.HabitService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,13 +72,29 @@ class HabitControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                    "name": "  "
+                                    "name": "  ",
                                     "description": "Reading improves memory"
                                 }
                                 """))
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(habitService);
+    }
+
+    @Test
+    void createHabit_shouldReturnConflictWhenNameAlreadyExists() throws Exception {
+        when(habitService.createHabit("Reading", null)).thenThrow(new DuplicateHabitNameException());
+
+        mockMvc.perform(post("/api/v1/habits")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "name": "Reading"
+                                }
+                                """))
+                .andExpect(status().isConflict());
+
+        verify(habitService).createHabit("Reading", null);
     }
 
 }
