@@ -13,9 +13,11 @@ public class HabitService {
     }
 
     public Habit createHabit(String name, String description) {
-        String normalizedName = name.strip();
+        if (name == null || name.isBlank()) {
+            throw new InvalidHabitNameException();
+        }
 
-        if (normalizedName.isBlank()) throw new InvalidHabitNameException();
+        String normalizedName = name.strip();
 
         Habit habit = new Habit(normalizedName, description, true);
         return habitRepository.save(habit);
