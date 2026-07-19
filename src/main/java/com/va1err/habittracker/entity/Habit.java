@@ -18,6 +18,10 @@ public class Habit {
         return name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     public boolean isActive() {
         return active;
     }

@@ -11,9 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -38,12 +36,30 @@ class HabitServiceTest {
         Habit savedHabit = habitCaptor.getValue();
 
         assertEquals("Read books", savedHabit.getName());
+        assertNull(savedHabit.getDescription());
         assertTrue(savedHabit.isActive());
+    }
+
+    @Test
+    void createHabit_shouldPreserveDescription() {
+        habitService.createHabit("Read books", "Reading improves memory");
+
+        verify(habitRepository).save(habitCaptor.capture());
+
+        Habit savedHabit = habitCaptor.getValue();
+
+        assertEquals("Reading improves memory", savedHabit.getDescription());
     }
 
     @Test
     void createHabit_shouldRejectBlankName() {
         assertThrows(InvalidHabitNameException.class, () -> habitService.createHabit("    ", null));
+        verifyNoInteractions(habitRepository);
+    }
+
+    @Test
+    void createHabit_shouldRejectEmptyName() {
+        assertThrows(InvalidHabitNameException.class, () -> habitService.createHabit("", null));
         verifyNoInteractions(habitRepository);
     }
 
