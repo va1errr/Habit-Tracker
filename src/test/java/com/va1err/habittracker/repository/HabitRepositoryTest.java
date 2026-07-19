@@ -43,4 +43,9 @@ class HabitRepositoryTest {
         assertThrows(DataIntegrityViolationException.class, () -> habitRepository.saveAndFlush(duplicateHabit));
     }
 
+    @Test
+    void existsByNameIgnoreCase_shouldReturnFalseWhenNameDoesNotExist() {
+        assertFalse(habitRepository.existsByNameIgnoreCase("Reading"));
+    }
+
 }
