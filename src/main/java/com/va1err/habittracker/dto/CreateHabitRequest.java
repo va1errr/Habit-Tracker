@@ -1,5 +1,7 @@
 package com.va1err.habittracker.dto;
 
-public record CreateHabitRequest(String name, String description) {
+import jakarta.validation.constraints.NotBlank;
+
+public record CreateHabitRequest(@NotBlank String name, String description) {
 
 }

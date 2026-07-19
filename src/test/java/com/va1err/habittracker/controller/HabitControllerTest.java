@@ -51,4 +51,33 @@ class HabitControllerTest {
         verify(habitService).createHabit("Read books", "Reading improves memory");
     }
 
+    @Test
+    void createHabit_shouldReturnBadRequestWhenNameIsMissing() throws Exception {
+        mockMvc.perform(post("/api/v1/habits")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "description": "Reading improves memory"
+                                }
+                                """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(habitService);
+    }
+
+    @Test
+    void createHabit_shouldReturnBadRequestWhenNameIsBlank() throws Exception {
+        mockMvc.perform(post("/api/v1/habits")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "name": "  "
+                                    "description": "Reading improves memory"
+                                }
+                                """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(habitService);
+    }
+
 }
