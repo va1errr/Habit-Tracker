@@ -1,0 +1,121 @@
+name: Technical Task
+description: Техническое улучшение проекта без новой пользовательской функциональности
+title: "[TECH] "
+labels: []
+assignees: []
+
+body:
+  - type: dropdown
+    id: task-type
+    attributes:
+      label: Task Type
+      description: Выбери основную категорию задачи
+      options:
+        - Refactoring
+        - Testing
+        - CI/CD
+        - Dependencies
+        - Documentation
+        - Configuration
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: Опиши конкретный ожидаемый технический результат
+      placeholder: Настроить автоматический запуск тестов для каждого Pull Request
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Объясни, какую проблему решает задача и почему она необходима
+      placeholder: Сейчас изменения могут попасть в main без автоматической проверки...
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: Перечисли изменения, которые входят в задачу
+      placeholder: |
+        - Добавить CI workflow
+        - Запускать Maven-тесты
+        - Сохранять результат проверки в Pull Request
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Опиши проверяемые условия завершения задачи
+      placeholder: |
+        Given ...
+        When ...
+        Then ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation-notes
+    attributes:
+      label: Implementation Notes
+      description: Укажи возможное направление реализации или технические ограничения
+      placeholder: Необязательные идеи — окончательное решение принимается во время реализации
+
+  - type: textarea
+    id: tests
+    attributes:
+      label: Tests
+      description: Опиши автоматические проверки либо объясни, почему они не требуются
+      placeholder: |
+        Automated:
+        Not required because:
+    validations:
+      required: true
+
+  - type: textarea
+    id: manual-verification
+    attributes:
+      label: Manual Verification
+      description: Опиши, как вручную убедиться, что техническое изменение работает
+      placeholder: |
+        Commands:
+        CI:
+        Logs:
+    validations:
+      required: true
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks
+      description: Укажи возможное влияние на существующую функциональность
+      placeholder: Изменение может повлиять на...
+
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of Scope
+      description: Укажи связанные изменения, которые намеренно не входят в задачу
+
+  - type: checkboxes
+    id: definition-of-done
+    attributes:
+      label: Definition of Done
+      description: Отмечай пункты в созданной Issue по мере выполнения задачи
+      options:
+        - label: Scope согласован
+        - label: Реализация завершена
+        - label: Документация обновлена, если требуется
+        - label: Автоматические тесты добавлены или обновлены, если требуется
+        - label: Все автоматические тесты проходят
+        - label: CI проходит
+        - label: PR связан с Issue
