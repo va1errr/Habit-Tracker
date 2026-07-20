@@ -1,7 +1,7 @@
 name: User Story
 description: Реализация пользовательской истории
 title: "[US-XXX] - "
-labels: []
+labels: ["user-story"]
 assignees: []
 
 body:

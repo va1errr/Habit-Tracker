@@ -1,7 +1,7 @@
 name: Technical Task
 description: Техническое улучшение проекта без новой пользовательской функциональности
 title: "[TECH] "
-labels: []
+labels: ["technical-task"]
 assignees: []
 
 body:
