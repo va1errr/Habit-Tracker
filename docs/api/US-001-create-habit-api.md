@@ -75,7 +75,7 @@
   "message": "string",
   "errors": [
     {
-      "field": "string", 
+      "field": "string",
       "message": "string"
     }
   ]
@@ -84,12 +84,13 @@
 
 ### Error Fields
 
-| Field            | Type      | Description                  |
-|------------------|-----------|------------------------------|
-| `status`         | `integer` | HTTP статус ошибки           |
-| `message`        | `string`  | Короткое сообщение об ошибке |
-| `errors.field`   | `string`  | Поле, в котором ошибка       |
-| `errors.message` | `string`  | Описание ошибки в поле       |
+| Field            | Type      | Description                                 |
+|------------------|-----------|---------------------------------------------|
+| `status`         | `integer` | HTTP статус ошибки                          |
+| `message`        | `string`  | Короткое сообщение об ошибке                |
+| `errors`         | `array`   | Массив с деталями ошибки, может быть пустым |
+| `errors.field`   | `string`  | Поле, в котором ошибка                      |
+| `errors.message` | `string`  | Описание ошибки в поле                      |
 
 ## Business Rules
 
