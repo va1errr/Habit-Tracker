@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18.4
+        env:
+          POSTGRES_DB: habit_tracker
+          POSTGRES_USER: habit_tracker
+          POSTGRES_PASSWORD: habit_tracker
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U habit_tracker -d habit_tracker"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+
+      - name: Verify with Maven
+        run: ./mvnw --batch-mode verify
