@@ -1,0 +1,106 @@
+name: User Story
+description: Реализация пользовательской истории
+title: "[US-XXX] - "
+labels: []
+assignees: []
+
+body:
+  - type: input
+    id: related-story
+    attributes:
+      label: Related User Story
+      description: Ссылка на документ из docs/user-stories
+      placeholder: docs/user-stories/US-XXX-short-name.md
+    validations:
+      required: true
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: Опиши ожидаемый результат и ценность для пользователя
+      placeholder: Пользователь сможет... Это позволит...
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Опиши каждый сценарий в формате Given / When / Then
+      placeholder: |
+        Сценарий 1: Краткое название
+
+        Given ...
+        When ...
+        Then ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: api-contract
+    attributes:
+      label: API Contract
+      description: Укажи HTTP-метод, endpoint, тело запроса и возможные ответы
+      placeholder: |
+        Method:
+        Endpoint:
+        Request:
+        Successful response:
+        Error responses:
+    validations:
+      required: true
+
+  - type: textarea
+    id: database-impact
+    attributes:
+      label: Database Impact
+      description: Опиши изменения таблиц, ограничений и миграций либо укажи, что они не требуются
+      placeholder: Изменения БД не требуются.
+    validations:
+      required: true
+
+  - type: textarea
+    id: tests
+    attributes:
+      label: Tests
+      description: Перечисли необходимые тесты по уровням
+      placeholder: |
+        Unit:
+        Repository:
+        Controller:
+        Integration:
+    validations:
+      required: true
+
+  - type: textarea
+    id: manual-verification
+    attributes:
+      label: Manual Verification
+      description: Опиши ручную проверку через Swagger, PostgreSQL и логи
+      placeholder: |
+        Swagger:
+        Database:
+        Logs:
+    validations:
+      required: true
+
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of Scope
+      description: Укажи функциональность, которая намеренно не входит в эту задачу
+
+  - type: checkboxes
+    id: definition-of-done
+    attributes:
+      label: Definition of Done
+      description: Отмечай пункты в созданной Issue по мере выполнения задачи
+      options:
+        - label: Требования уточнены
+        - label: Документация обновлена
+        - label: Автоматические тесты проходят
+        - label: Ручная проверка выполнена
+        - label: CI проходит
+        - label: PR связан с Issue
+
