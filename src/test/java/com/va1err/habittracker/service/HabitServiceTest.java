@@ -11,6 +11,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -31,7 +32,7 @@ class HabitServiceTest {
     void createHabit_shouldTrimNameAndActivateHabit() {
         habitService.createHabit("  Read books ", null);
 
-        verify(habitRepository).save(habitCaptor.capture());
+        verify(habitRepository).saveAndFlush(habitCaptor.capture());
 
         Habit savedHabit = habitCaptor.getValue();
 
@@ -44,7 +45,7 @@ class HabitServiceTest {
     void createHabit_shouldPreserveDescription() {
         habitService.createHabit("Read books", "Reading improves memory");
 
-        verify(habitRepository).save(habitCaptor.capture());
+        verify(habitRepository).saveAndFlush(habitCaptor.capture());
 
         Habit savedHabit = habitCaptor.getValue();
 
@@ -75,7 +76,17 @@ class HabitServiceTest {
 
         assertThrows(DuplicateHabitNameException.class, () -> habitService.createHabit("  Reading ", null));
         verify(habitRepository).existsByNameIgnoreCase("Reading");
-        verify(habitRepository, never()).save(any(Habit.class));
+        verify(habitRepository, never()).saveAndFlush(any(Habit.class));
+    }
+
+    @Test
+    void createHabit_shouldRejectDuplicateWhenDatabaseConstraintIsViolated() {
+        when(habitRepository.saveAndFlush(any(Habit.class)))
+                .thenThrow(new DataIntegrityViolationException(
+                        "Unique constraint violation"
+                ));
+
+        assertThrows(DuplicateHabitNameException.class, () -> habitService.createHabit("Reading", null));
     }
 
 }

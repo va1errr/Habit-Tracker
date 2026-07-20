@@ -4,6 +4,7 @@ import com.va1err.habittracker.entity.Habit;
 import com.va1err.habittracker.exception.DuplicateHabitNameException;
 import com.va1err.habittracker.exception.InvalidHabitNameException;
 import com.va1err.habittracker.repository.HabitRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +30,12 @@ public class HabitService {
         }
 
         Habit habit = new Habit(normalizedName, description, true);
-        return habitRepository.save(habit);
+
+        try {
+            return habitRepository.saveAndFlush(habit);
+        } catch (DataIntegrityViolationException e) {
+            throw new DuplicateHabitNameException();
+        }
     }
 
 }
