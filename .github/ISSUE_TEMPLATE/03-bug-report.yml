@@ -1,0 +1,79 @@
+name: Bug Report
+description: Сообщить об ошибке в существующей функциональности
+title: "[BUG] "
+labels: ["bug"]
+assignees: []
+
+body:
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug Description
+      description: Кратко опиши, что работает неправильно и где обнаружена ошибка
+      placeholder: При запросе списка привычек сервер возвращает ошибку...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Укажи точную последовательность действий, которая приводит к ошибке
+      placeholder: |
+        1. Запустить приложение
+        2. Открыть Swagger
+        3. Отправить запрос ...
+        4. Получить ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: Опиши ожидаемое поведение согласно требованиям
+      placeholder: Сервер должен вернуть 200 OK и...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: Опиши фактический результат
+      placeholder: Сервер возвращает 500 Internal Server Error...
+    validations:
+      required: true
+
+  - type: input
+    id: affected-endpoint
+    attributes:
+      label: Affected Endpoint
+      description: Укажи HTTP-метод и endpoint, если ошибка связана с API
+      placeholder: GET /api/v1/habits
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: Где воспроизводится ошибка
+      options:
+        - Local application
+        - Automated tests
+        - CI
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Добавь релевантные логи без паролей, токенов и других секретов
+      render: shell
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Добавь ссылки, скриншоты или другой полезный контекст
