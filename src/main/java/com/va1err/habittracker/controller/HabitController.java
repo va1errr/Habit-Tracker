@@ -1,12 +1,15 @@
 package com.va1err.habittracker.controller;
 
 import com.va1err.habittracker.dto.CreateHabitRequest;
+import com.va1err.habittracker.dto.HabitListItemResponse;
 import com.va1err.habittracker.dto.HabitResponse;
 import com.va1err.habittracker.entity.Habit;
 import com.va1err.habittracker.service.HabitService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/habits")
@@ -29,6 +32,11 @@ public class HabitController {
                 habit.getDescription(),
                 habit.isActive()
         );
+    }
+
+    @GetMapping
+    public List<HabitListItemResponse> listHabits() {
+        return habitService.listHabits();
     }
 
 }
