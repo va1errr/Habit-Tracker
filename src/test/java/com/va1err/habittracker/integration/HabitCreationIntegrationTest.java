@@ -1,5 +1,6 @@
 package com.va1err.habittracker.integration;
 
+import com.va1err.habittracker.config.PostgresTestContainerConfig;
 import com.va1err.habittracker.entity.Habit;
 import com.va1err.habittracker.repository.HabitRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,7 @@ import static org.hamcrest.Matchers.nullValue;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@Import(PostgresTestContainerConfig.class)
 class HabitCreationIntegrationTest {
 
     @Autowired
