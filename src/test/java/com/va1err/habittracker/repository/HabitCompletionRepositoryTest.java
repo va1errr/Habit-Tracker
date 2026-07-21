@@ -112,4 +112,24 @@ class HabitCompletionRepositoryTest {
                 habitCompletionRepository.findAllByCompletionDate(date1));
     }
 
+    @Test
+    void existsByHabitIdAndCompletionDate_shouldReturnTrueOnlyForMatchingHabitAndDate() {
+        Habit habit1 = new Habit("Reading", null, true);
+        Habit habit2 = new Habit("Writing", null, true);
+
+        Habit savedHabit1 = habitRepository.saveAndFlush(habit1);
+        Habit savedHabit2 = habitRepository.saveAndFlush(habit2);
+
+        LocalDate date1 = LocalDate.of(2026, 7, 20);
+        LocalDate date2 = LocalDate.of(2026, 7, 21);
+
+        HabitCompletion habitCompletion = new HabitCompletion(savedHabit1, date1);
+
+        habitCompletionRepository.saveAndFlush(habitCompletion);
+
+        assertTrue(habitCompletionRepository.existsByHabitIdAndCompletionDate(savedHabit1.getId(), date1));
+        assertFalse(habitCompletionRepository.existsByHabitIdAndCompletionDate(savedHabit1.getId(), date2));
+        assertFalse(habitCompletionRepository.existsByHabitIdAndCompletionDate(savedHabit2.getId(), date1));
+    }
+
 }

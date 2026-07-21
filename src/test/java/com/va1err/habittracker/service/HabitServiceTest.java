@@ -1,9 +1,11 @@
 package com.va1err.habittracker.service;
 
+import com.va1err.habittracker.dto.HabitDetailsResponse;
 import com.va1err.habittracker.dto.HabitListItemResponse;
 import com.va1err.habittracker.entity.Habit;
 import com.va1err.habittracker.entity.HabitCompletion;
 import com.va1err.habittracker.exception.DuplicateHabitNameException;
+import com.va1err.habittracker.exception.HabitNotFoundException;
 import com.va1err.habittracker.exception.InvalidHabitNameException;
 import com.va1err.habittracker.repository.HabitCompletionRepository;
 import com.va1err.habittracker.repository.HabitRepository;
@@ -21,6 +23,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -218,6 +221,65 @@ class HabitServiceTest {
 
         assertThat(result).containsExactlyInAnyOrderElementsOf(expected);
         verify(habitCompletionRepository).findAllByCompletionDate(TODAY);
+    }
+
+    @Test
+    void getById_shouldReturnActiveHabitWithCompletedTodayFalseWhenNoCompletionExistsForToday() {
+        Habit habit = mock(Habit.class);
+
+        when(habit.getId()).thenReturn(1L);
+        when(habit.getName()).thenReturn("Reading");
+        when(habit.getDescription()).thenReturn(null);
+
+        when(habitRepository.findByIdAndActiveTrue(1L)).thenReturn(Optional.of(habit));
+        when(habitCompletionRepository.existsByHabitIdAndCompletionDate(1L, TODAY)).thenReturn(false);
+
+        HabitDetailsResponse expected = new HabitDetailsResponse(
+                1L,
+                "Reading",
+                null,
+                false
+        );
+
+        var result = habitService.getById(1L);
+
+        assertEquals(expected, result);
+        verify(habitRepository).findByIdAndActiveTrue(1L);
+        verify(habitCompletionRepository).existsByHabitIdAndCompletionDate(1L, TODAY);
+    }
+
+    @Test
+    void getById_shouldReturnCompletedTodayTrueWhenCompletionExistsForToday() {
+        Habit habit = mock(Habit.class);
+
+        when(habit.getId()).thenReturn(1L);
+        when(habit.getName()).thenReturn("Reading");
+        when(habit.getDescription()).thenReturn(null);
+
+        when(habitRepository.findByIdAndActiveTrue(1L)).thenReturn(Optional.of(habit));
+        when(habitCompletionRepository.existsByHabitIdAndCompletionDate(1L, TODAY)).thenReturn(true);
+
+        HabitDetailsResponse expected = new HabitDetailsResponse(
+                1L,
+                "Reading",
+                null,
+                true
+        );
+
+        var result = habitService.getById(1L);
+
+        assertEquals(expected, result);
+        verify(habitRepository).findByIdAndActiveTrue(1L);
+        verify(habitCompletionRepository).existsByHabitIdAndCompletionDate(1L, TODAY);
+    }
+
+    @Test
+    void getById_shouldThrowHabitNotFoundExceptionWhenNoActiveHabitExists() {
+        when(habitRepository.findByIdAndActiveTrue(1L)).thenReturn(Optional.empty());
+
+        assertThrows(HabitNotFoundException.class, () -> habitService.getById(1L));
+        verify(habitRepository).findByIdAndActiveTrue(1L);
+        verify(habitCompletionRepository, never()).existsByHabitIdAndCompletionDate(any(), any());
     }
 
 }

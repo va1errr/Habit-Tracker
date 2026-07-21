@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -66,6 +67,29 @@ class HabitRepositoryTest {
         assertTrue(result.contains(activeHabit));
         assertFalse(result.contains(archiveHabit));
         assertTrue(result.stream().allMatch(Habit::isActive));
+    }
+
+    @Test
+    void findByIdAndActiveTrue_shouldReturnEmptyWhenHabitIsArchived() {
+        Habit archiveHabit = new Habit("Writing", null, false);
+
+        Habit savedHabit = habitRepository.saveAndFlush(archiveHabit);
+
+        Optional<Habit> result = habitRepository.findByIdAndActiveTrue(savedHabit.getId());
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void findByIdAndActiveTrue_shouldReturnActiveHabit() {
+        Habit activeHabit = new Habit("Reading", null, true);
+
+        Habit savedHabit = habitRepository.saveAndFlush(activeHabit);
+
+        Optional<Habit> result = habitRepository.findByIdAndActiveTrue(savedHabit.getId());
+
+        assertTrue(result.isPresent());
+        assertEquals(savedHabit, result.get());
     }
 
 }

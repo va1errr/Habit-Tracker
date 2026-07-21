@@ -1,6 +1,7 @@
 package com.va1err.habittracker.controller;
 
 import com.va1err.habittracker.dto.CreateHabitRequest;
+import com.va1err.habittracker.dto.HabitDetailsResponse;
 import com.va1err.habittracker.dto.HabitListItemResponse;
 import com.va1err.habittracker.dto.HabitResponse;
 import com.va1err.habittracker.entity.Habit;
@@ -37,6 +38,11 @@ public class HabitController {
     @GetMapping
     public List<HabitListItemResponse> listHabits() {
         return habitService.listHabits();
+    }
+
+    @GetMapping("/{id}")
+    public HabitDetailsResponse getById(@PathVariable Long id) {
+        return habitService.getById(id);
     }
 
 }

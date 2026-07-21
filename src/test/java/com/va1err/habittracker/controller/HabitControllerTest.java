@@ -1,8 +1,10 @@
 package com.va1err.habittracker.controller;
 
+import com.va1err.habittracker.dto.HabitDetailsResponse;
 import com.va1err.habittracker.dto.HabitListItemResponse;
 import com.va1err.habittracker.entity.Habit;
 import com.va1err.habittracker.exception.DuplicateHabitNameException;
+import com.va1err.habittracker.exception.HabitNotFoundException;
 import com.va1err.habittracker.service.HabitService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -178,6 +180,56 @@ class HabitControllerTest {
                 .andExpect(jsonPath("$[0].completedToday").value(false));
 
         verify(habitService).listHabits();
+    }
+
+    @Test
+    void getById_shouldReturnHabitDetails() throws Exception {
+        HabitDetailsResponse habitDetailsResponse = new HabitDetailsResponse(
+                1L,
+                "Read books",
+                "Reading improves memory",
+                true
+        );
+
+        when(habitService.getById(1L)).thenReturn(habitDetailsResponse);
+
+        mockMvc.perform(get("/api/v1/habits/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Read books"))
+                .andExpect(jsonPath("$.description").value("Reading improves memory"))
+                .andExpect(jsonPath("$.completedToday").value(true));
+
+        verify(habitService).getById(1L);
+    }
+
+    @Test
+    void getById_shouldReturnNotFoundWhenNoActiveHabitExists() throws Exception {
+        when(habitService.getById(1L)).thenThrow(new HabitNotFoundException());
+
+        mockMvc.perform(get("/api/v1/habits/1"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("Habit not found"))
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors").isEmpty());
+
+        verify(habitService).getById(1L);
+    }
+
+    @Test
+    void getById_shouldReturnBadRequestWhenIdIsNotNumber() throws Exception {
+        mockMvc.perform(get("/api/v1/habits/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").isNotEmpty())
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors").isEmpty());
+
+        verifyNoInteractions(habitService);
     }
 
 }

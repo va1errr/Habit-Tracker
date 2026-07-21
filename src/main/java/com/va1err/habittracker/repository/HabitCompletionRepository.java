@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface HabitCompletionRepository extends JpaRepository<HabitCompletion, Long> {
     List<HabitCompletion> findAllByCompletionDate(LocalDate completionDate);
+    boolean existsByHabitIdAndCompletionDate(Long habitId, LocalDate completionDate);
 }
