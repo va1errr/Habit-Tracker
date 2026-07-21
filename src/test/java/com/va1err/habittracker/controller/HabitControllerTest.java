@@ -1,5 +1,6 @@
 package com.va1err.habittracker.controller;
 
+import com.va1err.habittracker.dto.HabitListItemResponse;
 import com.va1err.habittracker.entity.Habit;
 import com.va1err.habittracker.exception.DuplicateHabitNameException;
 import com.va1err.habittracker.service.HabitService;
@@ -10,7 +11,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -112,6 +117,67 @@ class HabitControllerTest {
                 .andExpect(jsonPath("$.errors").isEmpty());
 
         verify(habitService).createHabit("Reading", null);
+    }
+
+    @Test
+    void listHabits_shouldReturnHabitList() throws Exception {
+        HabitListItemResponse habitListItemResponse = new HabitListItemResponse(
+                1L,
+                "Read books",
+                "Reading improves memory",
+                true
+        );
+
+        when(habitService.listHabits()).thenReturn(List.of(habitListItemResponse));
+
+        mockMvc.perform(get("/api/v1/habits"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].name").value("Read books"))
+                .andExpect(jsonPath("$[0].description").value("Reading improves memory"))
+                .andExpect(jsonPath("$[0].completedToday").value(true));
+
+        verify(habitService).listHabits();
+    }
+
+    @Test
+    void listHabits_shouldReturnEmptyArrayWhenNoHabits() throws Exception {
+        when(habitService.listHabits()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/v1/habits"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
+
+        verify(habitService).listHabits();
+    }
+
+    @Test
+    void listHabits_shouldReturnNullDescriptionAndCompletedTodayFalse() throws Exception {
+        HabitListItemResponse habitListItemResponse = new HabitListItemResponse(
+                1L,
+                "Read books",
+                null,
+                false
+        );
+
+        when(habitService.listHabits()).thenReturn(List.of(habitListItemResponse));
+
+        mockMvc.perform(get("/api/v1/habits"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].name").value("Read books"))
+                .andExpect(jsonPath("$[0].description").value(nullValue()))
+                .andExpect(jsonPath("$[0].completedToday").value(false));
+
+        verify(habitService).listHabits();
     }
 
 }

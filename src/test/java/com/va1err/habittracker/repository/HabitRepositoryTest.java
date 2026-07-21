@@ -7,6 +7,8 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
@@ -46,6 +48,21 @@ class HabitRepositoryTest {
     @Test
     void existsByNameIgnoreCase_shouldReturnFalseWhenNameDoesNotExist() {
         assertFalse(habitRepository.existsByNameIgnoreCase("Reading"));
+    }
+
+    @Test
+    void findAllByActiveTrue_shouldReturnOnlyActiveHabits() {
+        Habit activeHabit = new Habit("Reading", null, true);
+        Habit archiveHabit = new Habit("Writing", null, false);
+
+        habitRepository.saveAndFlush(activeHabit);
+        habitRepository.saveAndFlush(archiveHabit);
+
+        List<Habit> result = habitRepository.findAllByActiveTrue();
+
+        assertTrue(result.contains(activeHabit));
+        assertFalse(result.contains(archiveHabit));
+        assertTrue(result.stream().allMatch(Habit::isActive));
     }
 
 }
