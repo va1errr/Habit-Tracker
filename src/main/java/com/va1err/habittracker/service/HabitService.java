@@ -1,9 +1,11 @@
 package com.va1err.habittracker.service;
 
+import com.va1err.habittracker.dto.HabitDetailsResponse;
 import com.va1err.habittracker.dto.HabitListItemResponse;
 import com.va1err.habittracker.entity.Habit;
 import com.va1err.habittracker.entity.HabitCompletion;
 import com.va1err.habittracker.exception.DuplicateHabitNameException;
+import com.va1err.habittracker.exception.HabitNotFoundException;
 import com.va1err.habittracker.exception.InvalidHabitNameException;
 import com.va1err.habittracker.repository.HabitCompletionRepository;
 import com.va1err.habittracker.repository.HabitRepository;
@@ -19,7 +21,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class HabitService {
-
     private final HabitRepository habitRepository;
 
     private final HabitCompletionRepository habitCompletionRepository;
@@ -77,6 +78,19 @@ public class HabitService {
                         habit.getDescription(),
                         completedHabitIds.contains(habit.getId())
                 )).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public HabitDetailsResponse getById(Long id) {
+        Habit habit = habitRepository.findByIdAndActiveTrue(id)
+                .orElseThrow(HabitNotFoundException::new);
+
+        return new HabitDetailsResponse(
+                habit.getId(),
+                habit.getName(),
+                habit.getDescription(),
+                habitCompletionRepository.existsByHabitIdAndCompletionDate(id, LocalDate.now(clock))
+                );
     }
 
 }

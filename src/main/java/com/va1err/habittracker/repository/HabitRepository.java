@@ -4,8 +4,10 @@ import com.va1err.habittracker.entity.Habit;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface HabitRepository extends JpaRepository<Habit, Long> {
     boolean existsByNameIgnoreCase(String name);
     List<Habit> findAllByActiveTrue();
+    Optional<Habit> findByIdAndActiveTrue(Long id);
 }
