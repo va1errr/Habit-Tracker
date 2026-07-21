@@ -1,5 +1,6 @@
 package com.va1err.habittracker.integration;
 
+import com.va1err.habittracker.config.PostgresTestContainerConfig;
 import com.va1err.habittracker.config.TestClockConfig;
 import com.va1err.habittracker.entity.Habit;
 import com.va1err.habittracker.entity.HabitCompletion;
@@ -23,7 +24,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-@Import(TestClockConfig.class)
+@Import({
+        TestClockConfig.class,
+        PostgresTestContainerConfig.class
+})
 class HabitListIntegrationTest {
 
     private static final LocalDate TODAY = LocalDate.of(2026, 7, 21);
