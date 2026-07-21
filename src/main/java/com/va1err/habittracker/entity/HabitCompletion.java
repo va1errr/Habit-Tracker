@@ -31,4 +31,8 @@ public class HabitCompletion {
     public Long getId() {
         return id;
     }
+
+    public Habit getHabit() {
+        return habit;
+    }
 }
