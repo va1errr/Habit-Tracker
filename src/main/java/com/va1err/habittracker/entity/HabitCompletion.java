@@ -35,4 +35,8 @@ public class HabitCompletion {
     public Habit getHabit() {
         return habit;
     }
+
+    public LocalDate getCompletionDate() {
+        return completionDate;
+    }
 }

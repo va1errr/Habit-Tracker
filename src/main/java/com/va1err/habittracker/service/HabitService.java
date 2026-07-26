@@ -1,10 +1,12 @@
 package com.va1err.habittracker.service;
 
+import com.va1err.habittracker.dto.HabitCompletionResponse;
 import com.va1err.habittracker.dto.HabitDetailsResponse;
 import com.va1err.habittracker.dto.HabitListItemResponse;
 import com.va1err.habittracker.entity.Habit;
 import com.va1err.habittracker.entity.HabitCompletion;
 import com.va1err.habittracker.exception.DuplicateHabitNameException;
+import com.va1err.habittracker.exception.HabitAlreadyCompletedTodayException;
 import com.va1err.habittracker.exception.HabitNotFoundException;
 import com.va1err.habittracker.exception.InvalidHabitNameException;
 import com.va1err.habittracker.repository.HabitCompletionRepository;
@@ -91,6 +93,32 @@ public class HabitService {
                 habit.getDescription(),
                 habitCompletionRepository.existsByHabitIdAndCompletionDate(id, LocalDate.now(clock))
                 );
+    }
+
+    @Transactional
+    public HabitCompletionResponse completeHabit(Long habitId) {
+        LocalDate today = LocalDate.now(clock);
+
+        Habit habit = habitRepository.findByIdAndActiveTrue(habitId)
+                .orElseThrow(HabitNotFoundException::new);
+
+        if (habitCompletionRepository.existsByHabitIdAndCompletionDate(habitId, today)) {
+            throw new HabitAlreadyCompletedTodayException();
+        }
+
+        HabitCompletion habitCompletion = new HabitCompletion(habit, today);
+
+        try {
+            HabitCompletion savedHabitCompletion = habitCompletionRepository.saveAndFlush(habitCompletion);
+
+            return new HabitCompletionResponse(
+                    savedHabitCompletion.getId(),
+                    savedHabitCompletion.getHabit().getId(),
+                    savedHabitCompletion.getCompletionDate()
+            );
+        } catch (DataIntegrityViolationException exception) {
+            throw new HabitAlreadyCompletedTodayException();
+        }
     }
 
 }

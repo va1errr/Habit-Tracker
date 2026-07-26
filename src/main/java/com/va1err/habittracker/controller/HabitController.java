@@ -1,9 +1,6 @@
 package com.va1err.habittracker.controller;
 
-import com.va1err.habittracker.dto.CreateHabitRequest;
-import com.va1err.habittracker.dto.HabitDetailsResponse;
-import com.va1err.habittracker.dto.HabitListItemResponse;
-import com.va1err.habittracker.dto.HabitResponse;
+import com.va1err.habittracker.dto.*;
 import com.va1err.habittracker.entity.Habit;
 import com.va1err.habittracker.service.HabitService;
 import jakarta.validation.Valid;
@@ -43,6 +40,12 @@ public class HabitController {
     @GetMapping("/{id}")
     public HabitDetailsResponse getById(@PathVariable Long id) {
         return habitService.getById(id);
+    }
+
+    @PostMapping("/{id}/completions")
+    @ResponseStatus(HttpStatus.CREATED)
+    public HabitCompletionResponse completeHabit(@PathVariable Long id) {
+        return habitService.completeHabit(id);
     }
 
 }

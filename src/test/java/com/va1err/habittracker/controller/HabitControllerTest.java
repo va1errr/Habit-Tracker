@@ -1,9 +1,11 @@
 package com.va1err.habittracker.controller;
 
+import com.va1err.habittracker.dto.HabitCompletionResponse;
 import com.va1err.habittracker.dto.HabitDetailsResponse;
 import com.va1err.habittracker.dto.HabitListItemResponse;
 import com.va1err.habittracker.entity.Habit;
 import com.va1err.habittracker.exception.DuplicateHabitNameException;
+import com.va1err.habittracker.exception.HabitAlreadyCompletedTodayException;
 import com.va1err.habittracker.exception.HabitNotFoundException;
 import com.va1err.habittracker.service.HabitService;
 import org.junit.jupiter.api.Test;
@@ -13,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.hamcrest.Matchers.nullValue;
@@ -23,6 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(HabitController.class)
 class HabitControllerTest {
+
+    private static final LocalDate TODAY = LocalDate.of(2026, 7, 21);
 
     @Autowired
     private MockMvc mockMvc;
@@ -222,6 +227,69 @@ class HabitControllerTest {
     @Test
     void getById_shouldReturnBadRequestWhenIdIsNotNumber() throws Exception {
         mockMvc.perform(get("/api/v1/habits/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").isNotEmpty())
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors").isEmpty());
+
+        verifyNoInteractions(habitService);
+    }
+
+    @Test
+    void completeHabit_shouldReturnCreatedCompletion() throws Exception {
+        HabitCompletionResponse createdHabitCompletion = new HabitCompletionResponse(
+                1L,
+                1L,
+                TODAY
+        );
+
+        when(habitService.completeHabit(1L)).thenReturn(createdHabitCompletion);
+
+        mockMvc.perform(post("/api/v1/habits/1/completions"))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.habitId").value(1))
+                .andExpect(jsonPath("$.completionDate").value(TODAY.toString()));
+
+        verify(habitService).completeHabit(1L);
+    }
+
+    @Test
+    void completeHabit_shouldReturnNotFoundWhenNoActiveHabitExists() throws Exception {
+        when(habitService.completeHabit(1L)).thenThrow(new HabitNotFoundException());
+
+        mockMvc.perform(post("/api/v1/habits/1/completions"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("Habit not found"))
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors").isEmpty());
+
+        verify(habitService).completeHabit(1L);
+    }
+
+    @Test
+    void completeHabit_shouldReturnConflictWhenCompletionAlreadyExistsForToday() throws Exception {
+        when(habitService.completeHabit(1L)).thenThrow(new HabitAlreadyCompletedTodayException());
+
+        mockMvc.perform(post("/api/v1/habits/1/completions"))
+                .andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("Habit is already completed today"))
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors").isEmpty());
+
+        verify(habitService).completeHabit(1L);
+    }
+
+    @Test
+    void completeHabit_shouldReturnBadRequestWhenIdIsNotNumber() throws Exception {
+        mockMvc.perform(post("/api/v1/habits/abc/completions"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(400))

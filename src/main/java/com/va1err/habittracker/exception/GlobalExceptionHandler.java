@@ -67,4 +67,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @ExceptionHandler(HabitAlreadyCompletedTodayException.class)
+    public ResponseEntity<ApiErrorResponse> handleHabitAlreadyCompletedToday(HabitAlreadyCompletedTodayException exception) {
+        ApiErrorResponse response = new ApiErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                exception.getMessage(),
+                List.of()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
 }

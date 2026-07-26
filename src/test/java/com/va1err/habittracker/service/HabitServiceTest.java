@@ -1,10 +1,12 @@
 package com.va1err.habittracker.service;
 
+import com.va1err.habittracker.dto.HabitCompletionResponse;
 import com.va1err.habittracker.dto.HabitDetailsResponse;
 import com.va1err.habittracker.dto.HabitListItemResponse;
 import com.va1err.habittracker.entity.Habit;
 import com.va1err.habittracker.entity.HabitCompletion;
 import com.va1err.habittracker.exception.DuplicateHabitNameException;
+import com.va1err.habittracker.exception.HabitAlreadyCompletedTodayException;
 import com.va1err.habittracker.exception.HabitNotFoundException;
 import com.va1err.habittracker.exception.InvalidHabitNameException;
 import com.va1err.habittracker.repository.HabitCompletionRepository;
@@ -44,6 +46,9 @@ class HabitServiceTest {
 
     @Captor
     private ArgumentCaptor<Habit> habitCaptor;
+
+    @Captor
+    private ArgumentCaptor<HabitCompletion> habitCompletionCaptor;
 
     @BeforeEach
     void createHabitService() {
@@ -280,6 +285,68 @@ class HabitServiceTest {
         assertThrows(HabitNotFoundException.class, () -> habitService.getById(1L));
         verify(habitRepository).findByIdAndActiveTrue(1L);
         verify(habitCompletionRepository, never()).existsByHabitIdAndCompletionDate(any(), any());
+    }
+
+    @Test
+    void completeHabit_shouldCreateAndReturnCompletionForCurrentDate() {
+        Habit habit = mock(Habit.class);
+        HabitCompletion habitCompletion = mock(HabitCompletion.class);
+
+        when(habit.getId()).thenReturn(1L);
+
+        when(habitCompletion.getId()).thenReturn(1L);
+        when(habitCompletion.getHabit()).thenReturn(habit);
+        when(habitCompletion.getCompletionDate()).thenReturn(TODAY);
+
+        when(habitRepository.findByIdAndActiveTrue(1L)).thenReturn(Optional.of(habit));
+        when(habitCompletionRepository.saveAndFlush(any(HabitCompletion.class))).thenReturn(habitCompletion);
+
+        HabitCompletionResponse result = habitService.completeHabit(1L);
+        verify(habitCompletionRepository).saveAndFlush(habitCompletionCaptor.capture());
+
+        HabitCompletion savedHabitCompletion = habitCompletionCaptor.getValue();
+
+        assertEquals(
+                new HabitCompletionResponse(1L, 1L, TODAY),
+                result
+        );
+        assertEquals(1L, savedHabitCompletion.getHabit().getId());
+        assertEquals(TODAY, savedHabitCompletion.getCompletionDate());
+    }
+
+    @Test
+    void completeHabit_shouldThrowHabitNotFoundExceptionWhenNoActiveHabitExists() {
+        when(habitRepository.findByIdAndActiveTrue(1L)).thenReturn(Optional.empty());
+
+        assertThrows(HabitNotFoundException.class, () -> habitService.completeHabit(1L));
+        verify(habitRepository).findByIdAndActiveTrue(1L);
+        verifyNoInteractions(habitCompletionRepository);
+    }
+
+    @Test
+    void completeHabit_shouldThrowHabitAlreadyCompletedTodayExceptionWhenCompletionExistsForToday() {
+        Habit habit = mock(Habit.class);
+
+        when(habitRepository.findByIdAndActiveTrue(1L)).thenReturn(Optional.of(habit));
+        when(habitCompletionRepository.existsByHabitIdAndCompletionDate(1L, TODAY)).thenReturn(true);
+
+        assertThrows(HabitAlreadyCompletedTodayException.class,
+                () -> habitService.completeHabit(1L));
+
+        verify(habitCompletionRepository, never()).saveAndFlush(any(HabitCompletion.class));
+    }
+
+    @Test
+    void completeHabit_shouldThrowHabitAlreadyCompletedTodayExceptionWhenDatabaseConstraintIsViolated() {
+        Habit habit = mock(Habit.class);
+
+        when(habitRepository.findByIdAndActiveTrue(1L)).thenReturn(Optional.of(habit));
+        when(habitCompletionRepository.existsByHabitIdAndCompletionDate(1L, TODAY)).thenReturn(false);
+        when(habitCompletionRepository.saveAndFlush(any(HabitCompletion.class)))
+                .thenThrow(new DataIntegrityViolationException("Unique data constraint violation"));
+
+        assertThrows(HabitAlreadyCompletedTodayException.class,
+                () -> habitService.completeHabit(1L));
     }
 
 }
