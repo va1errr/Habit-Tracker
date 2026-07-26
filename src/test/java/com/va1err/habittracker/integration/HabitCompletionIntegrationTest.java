@@ -79,4 +79,25 @@ class HabitCompletionIntegrationTest {
                 .andExpect(jsonPath("$.completedToday").value(true));
     }
 
+    @Test
+    void completeHabit_shouldReturnConflictWhenCompletedTwiceToday() throws Exception {
+        Habit savedHabit = habitRepository.saveAndFlush(new Habit(
+                "Reading",
+                null,
+                true
+        ));
+
+        mockMvc.perform(post("/api/v1/habits/" + savedHabit.getId() + "/completions"))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+
+        mockMvc.perform(post("/api/v1/habits/" + savedHabit.getId() + "/completions"))
+                .andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+
+        List<HabitCompletion> habitCompletions = habitCompletionRepository.findAll();
+
+        assertEquals(1, habitCompletions.size());
+    }
+
 }
