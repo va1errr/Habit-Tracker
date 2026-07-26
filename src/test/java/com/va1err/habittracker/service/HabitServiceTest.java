@@ -313,4 +313,13 @@ class HabitServiceTest {
         assertEquals(TODAY, savedHabitCompletion.getCompletionDate());
     }
 
+    @Test
+    void completeHabit_shouldThrowHabitNotFoundExceptionWhenNoActiveHabitExists() {
+        when(habitRepository.findByIdAndActiveTrue(1L)).thenReturn(Optional.empty());
+
+        assertThrows(HabitNotFoundException.class, () -> habitService.completeHabit(1L));
+        verify(habitRepository).findByIdAndActiveTrue(1L);
+        verifyNoInteractions(habitCompletionRepository);
+    }
+
 }

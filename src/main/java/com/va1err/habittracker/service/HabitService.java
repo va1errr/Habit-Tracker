@@ -98,7 +98,8 @@ public class HabitService {
     public HabitCompletionResponse completeHabit(Long habitId) {
         LocalDate today = LocalDate.now(clock);
 
-        Habit habit = habitRepository.findByIdAndActiveTrue(habitId).get();
+        Habit habit = habitRepository.findByIdAndActiveTrue(habitId)
+                .orElseThrow(HabitNotFoundException::new);
 
         HabitCompletion habitCompletion = new HabitCompletion(habit, today);
 
