@@ -1,5 +1,6 @@
 package com.va1err.habittracker.service;
 
+import com.va1err.habittracker.dto.HabitCompletionResponse;
 import com.va1err.habittracker.dto.HabitDetailsResponse;
 import com.va1err.habittracker.dto.HabitListItemResponse;
 import com.va1err.habittracker.entity.Habit;
@@ -91,6 +92,23 @@ public class HabitService {
                 habit.getDescription(),
                 habitCompletionRepository.existsByHabitIdAndCompletionDate(id, LocalDate.now(clock))
                 );
+    }
+
+    @Transactional
+    public HabitCompletionResponse completeHabit(Long habitId) {
+        LocalDate today = LocalDate.now(clock);
+
+        Habit habit = habitRepository.findByIdAndActiveTrue(habitId).get();
+
+        HabitCompletion habitCompletion = new HabitCompletion(habit, today);
+
+        HabitCompletion savedHabitCompletion = habitCompletionRepository.saveAndFlush(habitCompletion);
+
+        return new HabitCompletionResponse(
+                savedHabitCompletion.getId(),
+                savedHabitCompletion.getHabit().getId(),
+                savedHabitCompletion.getCompletionDate()
+        );
     }
 
 }
