@@ -5,6 +5,7 @@ import com.va1err.habittracker.dto.HabitDetailsResponse;
 import com.va1err.habittracker.dto.HabitListItemResponse;
 import com.va1err.habittracker.entity.Habit;
 import com.va1err.habittracker.exception.DuplicateHabitNameException;
+import com.va1err.habittracker.exception.HabitAlreadyCompletedTodayException;
 import com.va1err.habittracker.exception.HabitNotFoundException;
 import com.va1err.habittracker.service.HabitService;
 import org.junit.jupiter.api.Test;
@@ -265,6 +266,21 @@ class HabitControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message").value("Habit not found"))
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors").isEmpty());
+
+        verify(habitService).completeHabit(1L);
+    }
+
+    @Test
+    void completeHabit_shouldReturnConflictWhenCompletionAlreadyExistsForToday() throws Exception {
+        when(habitService.completeHabit(1L)).thenThrow(new HabitAlreadyCompletedTodayException());
+
+        mockMvc.perform(post("/api/v1/habits/1/completions"))
+                .andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("Habit is already completed today"))
                 .andExpect(jsonPath("$.errors").isArray())
                 .andExpect(jsonPath("$.errors").isEmpty());
 
