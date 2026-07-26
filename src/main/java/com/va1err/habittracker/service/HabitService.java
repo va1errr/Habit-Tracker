@@ -6,6 +6,7 @@ import com.va1err.habittracker.dto.HabitListItemResponse;
 import com.va1err.habittracker.entity.Habit;
 import com.va1err.habittracker.entity.HabitCompletion;
 import com.va1err.habittracker.exception.DuplicateHabitNameException;
+import com.va1err.habittracker.exception.HabitAlreadyCompletedTodayException;
 import com.va1err.habittracker.exception.HabitNotFoundException;
 import com.va1err.habittracker.exception.InvalidHabitNameException;
 import com.va1err.habittracker.repository.HabitCompletionRepository;
@@ -100,6 +101,10 @@ public class HabitService {
 
         Habit habit = habitRepository.findByIdAndActiveTrue(habitId)
                 .orElseThrow(HabitNotFoundException::new);
+
+        if (habitCompletionRepository.existsByHabitIdAndCompletionDate(habitId, today)) {
+            throw new HabitAlreadyCompletedTodayException();
+        }
 
         HabitCompletion habitCompletion = new HabitCompletion(habit, today);
 

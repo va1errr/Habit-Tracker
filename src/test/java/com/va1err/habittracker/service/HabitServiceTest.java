@@ -6,6 +6,7 @@ import com.va1err.habittracker.dto.HabitListItemResponse;
 import com.va1err.habittracker.entity.Habit;
 import com.va1err.habittracker.entity.HabitCompletion;
 import com.va1err.habittracker.exception.DuplicateHabitNameException;
+import com.va1err.habittracker.exception.HabitAlreadyCompletedTodayException;
 import com.va1err.habittracker.exception.HabitNotFoundException;
 import com.va1err.habittracker.exception.InvalidHabitNameException;
 import com.va1err.habittracker.repository.HabitCompletionRepository;
@@ -320,6 +321,19 @@ class HabitServiceTest {
         assertThrows(HabitNotFoundException.class, () -> habitService.completeHabit(1L));
         verify(habitRepository).findByIdAndActiveTrue(1L);
         verifyNoInteractions(habitCompletionRepository);
+    }
+
+    @Test
+    void completeHabit_shouldThrowHabitAlreadyCompletedTodayExceptionWhenCompletionExistsForToday() {
+        Habit habit = mock(Habit.class);
+
+        when(habitRepository.findByIdAndActiveTrue(1L)).thenReturn(Optional.of(habit));
+        when(habitCompletionRepository.existsByHabitIdAndCompletionDate(1L, TODAY)).thenReturn(true);
+
+        assertThrows(HabitAlreadyCompletedTodayException.class,
+                () -> habitService.completeHabit(1L));
+
+        verify(habitCompletionRepository, never()).saveAndFlush(any(HabitCompletion.class));
     }
 
 }
