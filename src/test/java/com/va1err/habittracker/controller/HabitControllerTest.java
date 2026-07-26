@@ -256,4 +256,19 @@ class HabitControllerTest {
         verify(habitService).completeHabit(1L);
     }
 
+    @Test
+    void completeHabit_shouldReturnNotFoundWhenNoActiveHabitExists() throws Exception {
+        when(habitService.completeHabit(1L)).thenThrow(new HabitNotFoundException());
+
+        mockMvc.perform(post("/api/v1/habits/1/completions"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("Habit not found"))
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors").isEmpty());
+
+        verify(habitService).completeHabit(1L);
+    }
+
 }
