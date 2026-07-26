@@ -336,4 +336,17 @@ class HabitServiceTest {
         verify(habitCompletionRepository, never()).saveAndFlush(any(HabitCompletion.class));
     }
 
+    @Test
+    void completeHabit_shouldThrowHabitAlreadyCompletedTodayExceptionWhenDatabaseConstraintIsViolated() {
+        Habit habit = mock(Habit.class);
+
+        when(habitRepository.findByIdAndActiveTrue(1L)).thenReturn(Optional.of(habit));
+        when(habitCompletionRepository.existsByHabitIdAndCompletionDate(1L, TODAY)).thenReturn(false);
+        when(habitCompletionRepository.saveAndFlush(any(HabitCompletion.class)))
+                .thenThrow(new DataIntegrityViolationException("Unique data constraint violation"));
+
+        assertThrows(HabitAlreadyCompletedTodayException.class,
+                () -> habitService.completeHabit(1L));
+    }
+
 }

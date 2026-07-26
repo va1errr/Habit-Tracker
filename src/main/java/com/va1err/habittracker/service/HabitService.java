@@ -108,13 +108,17 @@ public class HabitService {
 
         HabitCompletion habitCompletion = new HabitCompletion(habit, today);
 
-        HabitCompletion savedHabitCompletion = habitCompletionRepository.saveAndFlush(habitCompletion);
+        try {
+            HabitCompletion savedHabitCompletion = habitCompletionRepository.saveAndFlush(habitCompletion);
 
-        return new HabitCompletionResponse(
-                savedHabitCompletion.getId(),
-                savedHabitCompletion.getHabit().getId(),
-                savedHabitCompletion.getCompletionDate()
-        );
+            return new HabitCompletionResponse(
+                    savedHabitCompletion.getId(),
+                    savedHabitCompletion.getHabit().getId(),
+                    savedHabitCompletion.getCompletionDate()
+            );
+        } catch (DataIntegrityViolationException exception) {
+            throw new HabitAlreadyCompletedTodayException();
+        }
     }
 
 }
