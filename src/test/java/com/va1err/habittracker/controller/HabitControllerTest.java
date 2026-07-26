@@ -1,5 +1,6 @@
 package com.va1err.habittracker.controller;
 
+import com.va1err.habittracker.dto.HabitCompletionResponse;
 import com.va1err.habittracker.dto.HabitDetailsResponse;
 import com.va1err.habittracker.dto.HabitListItemResponse;
 import com.va1err.habittracker.entity.Habit;
@@ -13,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.hamcrest.Matchers.nullValue;
@@ -23,6 +25,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(HabitController.class)
 class HabitControllerTest {
+
+    private static final LocalDate TODAY = LocalDate.of(2026, 7, 21);
 
     @Autowired
     private MockMvc mockMvc;
@@ -230,6 +234,26 @@ class HabitControllerTest {
                 .andExpect(jsonPath("$.errors").isEmpty());
 
         verifyNoInteractions(habitService);
+    }
+
+    @Test
+    void completeHabit_shouldReturnCreatedCompletion() throws Exception {
+        HabitCompletionResponse createdHabitCompletion = new HabitCompletionResponse(
+                1L,
+                1L,
+                TODAY
+        );
+
+        when(habitService.completeHabit(1L)).thenReturn(createdHabitCompletion);
+
+        mockMvc.perform(post("/api/v1/habits/1/completions"))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.habitId").value(1))
+                .andExpect(jsonPath("$.completionDate").value(TODAY.toString()));
+
+        verify(habitService).completeHabit(1L);
     }
 
 }
