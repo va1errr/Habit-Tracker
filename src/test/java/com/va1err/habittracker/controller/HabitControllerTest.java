@@ -287,4 +287,17 @@ class HabitControllerTest {
         verify(habitService).completeHabit(1L);
     }
 
+    @Test
+    void completeHabit_shouldReturnBadRequestWhenIdIsNotNumber() throws Exception {
+        mockMvc.perform(post("/api/v1/habits/abc/completions"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").isNotEmpty())
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors").isEmpty());
+
+        verifyNoInteractions(habitService);
+    }
+
 }
