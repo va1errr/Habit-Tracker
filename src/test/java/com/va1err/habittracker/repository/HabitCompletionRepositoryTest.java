@@ -22,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @Import(PostgresTestContainerConfig.class)
 class HabitCompletionRepositoryTest {
 
+    private static final LocalDate TODAY = LocalDate.of(2026, 7, 21);
+
     @Autowired
     private HabitCompletionRepository habitCompletionRepository;
 
@@ -130,6 +132,40 @@ class HabitCompletionRepositoryTest {
         assertTrue(habitCompletionRepository.existsByHabitIdAndCompletionDate(savedHabit1.getId(), date1));
         assertFalse(habitCompletionRepository.existsByHabitIdAndCompletionDate(savedHabit1.getId(), date2));
         assertFalse(habitCompletionRepository.existsByHabitIdAndCompletionDate(savedHabit2.getId(), date1));
+    }
+
+    @Test
+    void deleteByHabitIdAndCompletionDate_shouldDeleteOnlyMatchingCompletion() {
+        Habit habit1 = new Habit("Reading", null, true);
+        Habit habit2 = new Habit("Writing", null, true);
+
+        Habit savedHabit1 = habitRepository.saveAndFlush(habit1);
+        Habit savedHabit2 = habitRepository.saveAndFlush(habit2);
+
+        HabitCompletion habitCompletion1 = new HabitCompletion(savedHabit1, TODAY);
+        HabitCompletion habitCompletion2 = new HabitCompletion(savedHabit1, TODAY.minusDays(1));
+        HabitCompletion habitCompletion3 = new HabitCompletion(savedHabit2, TODAY);
+
+        habitCompletionRepository.saveAndFlush(habitCompletion1);
+        habitCompletionRepository.saveAndFlush(habitCompletion2);
+        habitCompletionRepository.saveAndFlush(habitCompletion3);
+
+        int deleted = habitCompletionRepository.deleteByHabitIdAndCompletionDate(savedHabit1.getId(), TODAY);
+
+        assertEquals(1, deleted);
+        assertFalse(habitCompletionRepository.existsByHabitIdAndCompletionDate(savedHabit1.getId(), TODAY));
+        assertTrue(habitCompletionRepository.existsByHabitIdAndCompletionDate(savedHabit1.getId(), TODAY.minusDays(1)));
+        assertTrue(habitCompletionRepository.existsByHabitIdAndCompletionDate(savedHabit2.getId(), TODAY));
+    }
+
+    @Test
+    void deleteByHabitIdAndCompletionDate_shouldReturnZeroWhenCompletionDoesNotExist() {
+        Habit habit = new Habit("Reading", null, true);
+        Habit savedHabit = habitRepository.saveAndFlush(habit);
+
+        int deleted = habitCompletionRepository.deleteByHabitIdAndCompletionDate(savedHabit.getId(), TODAY);
+
+        assertEquals(0, deleted);
     }
 
 }
