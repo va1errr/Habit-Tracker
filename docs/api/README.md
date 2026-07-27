@@ -4,6 +4,19 @@
 
 `/api/v1`
 
+## OpenAPI
+
+Для запущенного приложения доступны:
+
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+
+При добавлении или изменении API endpoint в рамках User Story необходимо в том же Pull Request:
+
+- обновить OpenAPI-аннотации;
+- обновить соответствующий документ в `docs/api`, если изменился контракт;
+- проверить Swagger UI и `/v3/api-docs` вручную.
+
 ## Endpoints
 
 | User Story | Method | Endpoint                   | Status      |
