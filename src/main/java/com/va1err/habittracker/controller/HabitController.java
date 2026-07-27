@@ -48,4 +48,10 @@ public class HabitController {
         return habitService.completeHabit(id);
     }
 
+    @DeleteMapping("/{id}/completions")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cancelHabitCompletion(@PathVariable Long id) {
+        habitService.cancelHabitCompletion(id);
+    }
+
 }

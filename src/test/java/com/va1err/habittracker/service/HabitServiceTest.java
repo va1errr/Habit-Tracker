@@ -5,10 +5,7 @@ import com.va1err.habittracker.dto.HabitDetailsResponse;
 import com.va1err.habittracker.dto.HabitListItemResponse;
 import com.va1err.habittracker.entity.Habit;
 import com.va1err.habittracker.entity.HabitCompletion;
-import com.va1err.habittracker.exception.DuplicateHabitNameException;
-import com.va1err.habittracker.exception.HabitAlreadyCompletedTodayException;
-import com.va1err.habittracker.exception.HabitNotFoundException;
-import com.va1err.habittracker.exception.InvalidHabitNameException;
+import com.va1err.habittracker.exception.*;
 import com.va1err.habittracker.repository.HabitCompletionRepository;
 import com.va1err.habittracker.repository.HabitRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -347,6 +344,46 @@ class HabitServiceTest {
 
         assertThrows(HabitAlreadyCompletedTodayException.class,
                 () -> habitService.completeHabit(1L));
+    }
+
+    @Test
+    void cancelHabitCompletion_shouldDeleteCompletionForCurrentDate() {
+        Habit habit = mock(Habit.class);
+        Long testHabitId = 11L;
+
+        when(habitRepository.findByIdAndActiveTrue(testHabitId)).thenReturn(Optional.of(habit));
+        when(habitCompletionRepository.deleteByHabitIdAndCompletionDate(testHabitId, TODAY)).thenReturn(1);
+
+        habitService.cancelHabitCompletion(testHabitId);
+
+        verify(habitRepository).findByIdAndActiveTrue(testHabitId);
+        verify(habitCompletionRepository).deleteByHabitIdAndCompletionDate(testHabitId, TODAY);
+    }
+
+    @Test
+    void cancelHabitCompletion_shouldThrowHabitNotFoundExceptionWhenNoActiveHabitExists() {
+        Long testHabitId = 11L;
+
+        when(habitRepository.findByIdAndActiveTrue(testHabitId)).thenReturn(Optional.empty());
+
+        assertThrows(HabitNotFoundException.class,
+                () -> habitService.cancelHabitCompletion(testHabitId));
+        verify(habitRepository).findByIdAndActiveTrue(testHabitId);
+        verifyNoInteractions(habitCompletionRepository);
+    }
+
+    @Test
+    void cancelHabitCompletion_shouldThrowHabitNotCompletedTodayExceptionWhenNoCompletionExistsForToday() {
+        Habit habit = mock(Habit.class);
+        Long testHabitId = 11L;
+
+        when(habitRepository.findByIdAndActiveTrue(testHabitId)).thenReturn(Optional.of(habit));
+        when(habitCompletionRepository.deleteByHabitIdAndCompletionDate(testHabitId, TODAY)).thenReturn(0);
+
+        assertThrows(HabitNotCompletedTodayException.class,
+                () -> habitService.cancelHabitCompletion(testHabitId));
+        verify(habitRepository).findByIdAndActiveTrue(testHabitId);
+        verify(habitCompletionRepository).deleteByHabitIdAndCompletionDate(testHabitId, TODAY);
     }
 
 }

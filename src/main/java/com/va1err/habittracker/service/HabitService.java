@@ -5,10 +5,7 @@ import com.va1err.habittracker.dto.HabitDetailsResponse;
 import com.va1err.habittracker.dto.HabitListItemResponse;
 import com.va1err.habittracker.entity.Habit;
 import com.va1err.habittracker.entity.HabitCompletion;
-import com.va1err.habittracker.exception.DuplicateHabitNameException;
-import com.va1err.habittracker.exception.HabitAlreadyCompletedTodayException;
-import com.va1err.habittracker.exception.HabitNotFoundException;
-import com.va1err.habittracker.exception.InvalidHabitNameException;
+import com.va1err.habittracker.exception.*;
 import com.va1err.habittracker.repository.HabitCompletionRepository;
 import com.va1err.habittracker.repository.HabitRepository;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -118,6 +115,17 @@ public class HabitService {
             );
         } catch (DataIntegrityViolationException exception) {
             throw new HabitAlreadyCompletedTodayException();
+        }
+    }
+
+    @Transactional
+    public void cancelHabitCompletion(Long habitId) {
+        habitRepository.findByIdAndActiveTrue(habitId).orElseThrow(HabitNotFoundException::new);
+
+        int deleted = habitCompletionRepository.deleteByHabitIdAndCompletionDate(habitId, LocalDate.now(clock));
+
+        if (deleted == 0) {
+            throw new HabitNotCompletedTodayException();
         }
     }
 
