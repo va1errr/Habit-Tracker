@@ -357,4 +357,21 @@ public class HabitController {
         habitService.cancelHabitCompletion(id);
     }
 
+    @PatchMapping("/{id}")
+    public HabitResponse updateHabit(@Valid @RequestBody UpdateHabitRequest request, @PathVariable Long id) {
+        Habit habit = habitService.updateHabit(
+                id,
+                request.getName(),
+                request.getDescription(),
+                request.descriptionPresent()
+        );
+
+        return new HabitResponse(
+                habit.getId(),
+                habit.getName(),
+                habit.getDescription(),
+                habit.isActive()
+        );
+    }
+
 }
