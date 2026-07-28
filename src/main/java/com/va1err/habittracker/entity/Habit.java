@@ -44,4 +44,9 @@ public class Habit {
         return active;
     }
 
+    public void updateDetails(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
+
 }
