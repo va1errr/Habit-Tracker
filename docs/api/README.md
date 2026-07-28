@@ -26,5 +26,5 @@
 | US-002     | GET    | `/habits/{id}`             | Implemented |
 | US-006     | POST   | `/habits/{id}/completions` | Implemented |
 | US-007     | DELETE | `/habits/{id}/completions` | Implemented |
-| US-004     | PUT    | `/habits/{id}`             | Planned     |
+| US-004     | PATCH  | `/habits/{id}`             | Planned     |
 | US-005     | DELETE | `/habits/{id}`             | Planned     |
