@@ -354,4 +354,193 @@ class HabitControllerTest {
         verifyNoInteractions(habitService);
     }
 
+    @Test
+    void updateHabit_shouldReturnUpdatedHabitWhenDescriptionIsExplicitlyNull() throws Exception {
+        Habit habit = mock(Habit.class);
+
+        when(habit.getId()).thenReturn(1L);
+        when(habit.getName()).thenReturn("Write poems");
+        when(habit.getDescription()).thenReturn(null);
+        when(habit.isActive()).thenReturn(true);
+
+        when(habitService.updateHabit(1L, "Write poems", null, true)).thenReturn(habit);
+
+        mockMvc.perform(patch("/api/v1/habits/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Write poems",
+                                  "description": null
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Write poems"))
+                .andExpect(jsonPath("$.description").value(nullValue()))
+                .andExpect(jsonPath("$.active").value(true));
+
+        verify(habitService).updateHabit(1L, "Write poems", null, true);
+    }
+
+    @Test
+    void updateHabit_shouldReturnUpdatedHabitWhenDescriptionIsProvided() throws Exception {
+        Habit habit = mock(Habit.class);
+
+        when(habit.getId()).thenReturn(1L);
+        when(habit.getName()).thenReturn("Write poems");
+        when(habit.getDescription()).thenReturn("Writing improves motorics");
+        when(habit.isActive()).thenReturn(true);
+
+        when(habitService.updateHabit(1L, "Write poems", "Writing improves motorics", true)).thenReturn(habit);
+
+        mockMvc.perform(patch("/api/v1/habits/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Write poems",
+                                  "description": "Writing improves motorics"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Write poems"))
+                .andExpect(jsonPath("$.description").value("Writing improves motorics"))
+                .andExpect(jsonPath("$.active").value(true));
+
+        verify(habitService).updateHabit(1L, "Write poems", "Writing improves motorics", true);
+    }
+
+    @Test
+    void updateHabit_shouldPreserveDescriptionWhenDescriptionIsAbsent() throws Exception {
+        Habit habit = mock(Habit.class);
+
+        when(habit.getId()).thenReturn(1L);
+        when(habit.getName()).thenReturn("Write poems");
+        when(habit.getDescription()).thenReturn("Writing improves motorics");
+        when(habit.isActive()).thenReturn(true);
+
+        when(habitService.updateHabit(1L, "Write poems", null, false)).thenReturn(habit);
+
+        mockMvc.perform(patch("/api/v1/habits/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Write poems"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Write poems"))
+                .andExpect(jsonPath("$.description").value("Writing improves motorics"))
+                .andExpect(jsonPath("$.active").value(true));
+
+        verify(habitService).updateHabit(1L, "Write poems", null, false);
+    }
+
+    @Test
+    void updateHabit_shouldReturnBadRequestWhenNameIsMissing() throws Exception {
+        mockMvc.perform(patch("/api/v1/habits/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "description": "Reading improves memory"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Validation failed"))
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors[0].field").value("name"))
+                .andExpect(jsonPath("$.errors[0].message").value("must not be blank"));
+
+        verifyNoInteractions(habitService);
+    }
+
+    @Test
+    void updateHabit_shouldReturnBadRequestWhenNameIsBlank() throws Exception {
+        mockMvc.perform(patch("/api/v1/habits/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "name": "  ",
+                                    "description": "Reading improves memory"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Validation failed"))
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors[0].field").value("name"))
+                .andExpect(jsonPath("$.errors[0].message").value("must not be blank"));
+
+        verifyNoInteractions(habitService);
+    }
+
+    @Test
+    void updateHabit_shouldReturnNotFoundWhenNoActiveHabitExists() throws Exception {
+        when(habitService.updateHabit(1L, "Write poems", null, false))
+                .thenThrow(new HabitNotFoundException());
+
+        mockMvc.perform(patch("/api/v1/habits/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "name": "Write poems"
+                                }
+                                """))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("Habit not found"))
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors").isEmpty());
+
+        verify(habitService).updateHabit(1L, "Write poems", null, false);
+    }
+
+    @Test
+    void updateHabit_shouldReturnConflictWhenNameAlreadyExists() throws Exception {
+        when(habitService.updateHabit(1L, "Reading", null, false))
+                .thenThrow(new DuplicateHabitNameException());
+
+        mockMvc.perform(patch("/api/v1/habits/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "name": "Reading"
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("Habit name already exists!"))
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors").isEmpty());
+
+        verify(habitService).updateHabit(1L, "Reading", null, false);
+    }
+
+    @Test
+    void updateHabit_shouldReturnBadRequestWhenIdIsNotNumber() throws Exception {
+        mockMvc.perform(patch("/api/v1/habits/abc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "name": "Reading"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").isNotEmpty())
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors").isEmpty());
+
+        verifyNoInteractions(habitService);
+    }
 }

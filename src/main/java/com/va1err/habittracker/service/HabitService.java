@@ -129,4 +129,32 @@ public class HabitService {
         }
     }
 
+    @Transactional
+    public Habit updateHabit(Long id, String name, String description, boolean descriptionPresent) {
+        if (name == null || name.isBlank()) {
+            throw new InvalidHabitNameException();
+        }
+
+        String normalizedName = name.strip();
+
+        Habit habit = habitRepository.findByIdAndActiveTrue(id)
+                .orElseThrow(HabitNotFoundException::new);
+
+        if (habitRepository.existsByNameIgnoreCaseAndIdNot(normalizedName, id)) {
+            throw new DuplicateHabitNameException();
+        }
+
+        String updatedDescription = descriptionPresent ?
+                description : habit.getDescription();
+
+        habit.updateDetails(normalizedName, updatedDescription);
+
+        try {
+            habitRepository.flush();
+            return habit;
+        } catch (DataIntegrityViolationException e) {
+            throw new DuplicateHabitNameException();
+        }
+    }
+
 }

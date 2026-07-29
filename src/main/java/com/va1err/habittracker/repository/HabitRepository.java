@@ -8,6 +8,7 @@ import java.util.Optional;
 
 public interface HabitRepository extends JpaRepository<Habit, Long> {
     boolean existsByNameIgnoreCase(String name);
+    boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
     List<Habit> findAllByActiveTrue();
     Optional<Habit> findByIdAndActiveTrue(Long id);
 }

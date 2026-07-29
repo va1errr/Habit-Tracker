@@ -92,4 +92,35 @@ class HabitRepositoryTest {
         assertEquals(savedHabit, result.get());
     }
 
+    @Test
+    void existsByNameIgnoreCaseAndIdNot_shouldReturnFalseForCurrentHabit() {
+        Habit habit = new Habit("Reading", null, true);
+
+        Habit savedHabit = habitRepository.saveAndFlush(habit);
+
+        assertFalse(habitRepository.existsByNameIgnoreCaseAndIdNot("rEaDiNg", savedHabit.getId()));
+    }
+
+    @Test
+    void existsByNameIgnoreCaseAndIdNot_shouldReturnTrueForAnotherActiveHabit() {
+        Habit habit1 = new Habit("Reading", null, true);
+        Habit habit2 = new Habit("Writing", null, true);
+
+        Habit savedHabit1 = habitRepository.saveAndFlush(habit1);
+        habitRepository.saveAndFlush(habit2);
+
+        assertTrue(habitRepository.existsByNameIgnoreCaseAndIdNot("wRiTiNg", savedHabit1.getId()));
+    }
+
+    @Test
+    void existsByNameIgnoreCaseAndIdNot_shouldReturnTrueForAnotherArchivedHabit() {
+        Habit habit1 = new Habit("Reading", null, true);
+        Habit habit2 = new Habit("Writing", null, false);
+
+        Habit savedHabit1 = habitRepository.saveAndFlush(habit1);
+        habitRepository.saveAndFlush(habit2);
+
+        assertTrue(habitRepository.existsByNameIgnoreCaseAndIdNot("wRiTiNg", savedHabit1.getId()));
+    }
+
 }

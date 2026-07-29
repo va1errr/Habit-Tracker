@@ -386,4 +386,127 @@ class HabitServiceTest {
         verify(habitCompletionRepository).deleteByHabitIdAndCompletionDate(testHabitId, TODAY);
     }
 
+    @Test
+    void updateHabit_shouldThrowHabitNotFoundExceptionWhenHabitDoesNotExist() {
+        Long testHabitId = 11L;
+
+        when(habitRepository.findByIdAndActiveTrue(testHabitId)).thenReturn(Optional.empty());
+
+        assertThrows(HabitNotFoundException.class, () -> habitService.updateHabit(testHabitId, "reading", null, false));
+        verify(habitRepository).findByIdAndActiveTrue(testHabitId);
+        verifyNoMoreInteractions(habitRepository);
+    }
+
+    @Test
+    void updateHabit_shouldThrowInvalidHabitNameExceptionWhenNameIsBlank() {
+        Long testHabitId = 11L;
+
+        assertThrows(InvalidHabitNameException.class, () -> habitService.updateHabit(testHabitId, "  ", null, false));
+        verifyNoInteractions(habitRepository);
+    }
+
+    @Test
+    void updateHabit_shouldThrowInvalidHabitNameExceptionWhenNameIsNull() {
+        Long testHabitId = 11L;
+
+        assertThrows(InvalidHabitNameException.class, () -> habitService.updateHabit(testHabitId, null, null, false));
+        verifyNoInteractions(habitRepository);
+    }
+
+    @Test
+    void updateHabit_shouldThrowDuplicateHabitNameExceptionWhenNameBelongsToAnotherHabit() {
+        Habit habit = mock(Habit.class);
+        Long testHabitId = 11L;
+
+        when(habitRepository.findByIdAndActiveTrue(testHabitId)).thenReturn(Optional.of(habit));
+        when(habitRepository.existsByNameIgnoreCaseAndIdNot("Reading", testHabitId)).thenReturn(true);
+
+        assertThrows(DuplicateHabitNameException.class, () -> habitService.updateHabit(testHabitId, "Reading", null, false));
+        verify(habitRepository).findByIdAndActiveTrue(testHabitId);
+        verify(habitRepository).existsByNameIgnoreCaseAndIdNot("Reading", testHabitId);
+        verifyNoMoreInteractions(habitRepository);
+    }
+
+    @Test
+    void updateHabit_shouldUpdateNameAndDescriptionWhenHabitIsActive() {
+        Habit habit = new Habit("Read books", "Reading improves memory", true);
+        Long testHabitId = 11L;
+
+        when(habitRepository.findByIdAndActiveTrue(testHabitId)).thenReturn(Optional.of(habit));
+        when(habitRepository.existsByNameIgnoreCaseAndIdNot("Write poems", testHabitId)).thenReturn(false);
+
+        Habit updatedHabit = habitService.updateHabit(testHabitId, "Write poems", "Writing improves motorics", true);
+
+        assertSame(habit, updatedHabit);
+        assertEquals("Write poems", updatedHabit.getName());
+        assertEquals("Writing improves motorics", updatedHabit.getDescription());
+        verify(habitRepository).findByIdAndActiveTrue(testHabitId);
+        verify(habitRepository).existsByNameIgnoreCaseAndIdNot("Write poems", testHabitId);
+    }
+
+    @Test
+    void updateHabit_shouldRemoveDescriptionWhenDescriptionIsExplicitlyNull() {
+        Habit habit = new Habit("Read books", "Reading improves memory", true);
+        Long testHabitId = 11L;
+
+        when(habitRepository.findByIdAndActiveTrue(testHabitId)).thenReturn(Optional.of(habit));
+        when(habitRepository.existsByNameIgnoreCaseAndIdNot("Write poems", testHabitId)).thenReturn(false);
+
+        Habit updatedHabit = habitService.updateHabit(testHabitId, "Write poems", null, true);
+
+        assertSame(habit, updatedHabit);
+        assertEquals("Write poems", updatedHabit.getName());
+        assertNull(updatedHabit.getDescription());
+        verify(habitRepository).findByIdAndActiveTrue(testHabitId);
+        verify(habitRepository).existsByNameIgnoreCaseAndIdNot("Write poems", testHabitId);
+    }
+
+    @Test
+    void updateHabit_shouldPreserveExistingDescriptionWhenDescriptionIsAbsent() {
+        Habit habit = new Habit("Read books", "Reading improves memory", true);
+        Long testHabitId = 11L;
+
+        when(habitRepository.findByIdAndActiveTrue(testHabitId)).thenReturn(Optional.of(habit));
+        when(habitRepository.existsByNameIgnoreCaseAndIdNot("Write poems", testHabitId)).thenReturn(false);
+
+        Habit updatedHabit = habitService.updateHabit(testHabitId, "Write poems", null, false);
+
+        assertSame(habit, updatedHabit);
+        assertEquals("Write poems", updatedHabit.getName());
+        assertEquals("Reading improves memory", updatedHabit.getDescription());
+        verify(habitRepository).findByIdAndActiveTrue(testHabitId);
+        verify(habitRepository).existsByNameIgnoreCaseAndIdNot("Write poems", testHabitId);
+    }
+
+    @Test
+    void updateHabit_shouldThrowDuplicateHabitNameExceptionWhenDatabaseConstraintIsViolated() {
+        Habit habit = mock(Habit.class);
+        Long testHabitId = 11L;
+
+        when(habitRepository.findByIdAndActiveTrue(testHabitId)).thenReturn(Optional.of(habit));
+        when(habitRepository.existsByNameIgnoreCaseAndIdNot("Reading", testHabitId)).thenReturn(false);
+        doThrow(new DataIntegrityViolationException("Unique constraint violation")).when(habitRepository).flush();
+
+        assertThrows(DuplicateHabitNameException.class, () -> habitService.updateHabit(testHabitId, "Reading", null, false));
+        verify(habitRepository).findByIdAndActiveTrue(testHabitId);
+        verify(habitRepository).existsByNameIgnoreCaseAndIdNot("Reading", testHabitId);
+        verify(habitRepository).flush();
+    }
+
+    @Test
+    void updateHabit_shouldTrimNameBeforeCheckingUniquenessAndUpdating() {
+        Habit habit = new Habit("Read books", "Reading improves memory", true);
+        Long testHabitId = 11L;
+
+        when(habitRepository.findByIdAndActiveTrue(testHabitId)).thenReturn(Optional.of(habit));
+        when(habitRepository.existsByNameIgnoreCaseAndIdNot("Write poems", testHabitId)).thenReturn(false);
+
+        Habit updatedHabit = habitService.updateHabit(testHabitId, "  Write poems ", null, true);
+
+        assertSame(habit, updatedHabit);
+        assertEquals("Write poems", updatedHabit.getName());
+        verify(habitRepository).findByIdAndActiveTrue(testHabitId);
+        verify(habitRepository).existsByNameIgnoreCaseAndIdNot("Write poems", testHabitId);
+    }
+
 }

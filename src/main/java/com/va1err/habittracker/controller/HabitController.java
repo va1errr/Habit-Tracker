@@ -357,4 +357,121 @@ public class HabitController {
         habitService.cancelHabitCompletion(id);
     }
 
+    @Operation(
+            summary = "Изменить привычку",
+            description = "Изменяет существующую привычку"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Привычка успешно изменена",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = HabitResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Некорректные данные запроса или формат ID",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorResponse.class),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "invalidHabitId",
+                                            summary = "Некорректный ID",
+                                            value = """
+                                                    {
+                                                      "status": 400,
+                                                      "message": "Invalid request parameter",
+                                                      "errors": []
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "validationError",
+                                            summary = "Ошибка валидации",
+                                            value = """
+                                                    {
+                                                      "status": 400,
+                                                      "message": "Validation failed",
+                                                      "errors": [
+                                                        {
+                                                          "field": "name",
+                                                          "message": "must not be blank"
+                                                        }
+                                                      ]
+                                                    }
+                                                    """
+                                    ),
+                            }
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Активная привычка не найдена",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorResponse.class),
+                            examples = @ExampleObject(
+                                    name = "habitNotFound",
+                                    summary = "Привычка не найдена",
+                                    value = """
+                                            {
+                                              "status": 404,
+                                              "message": "Habit not found",
+                                              "errors": []
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Привычка с таким названием уже существует",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorResponse.class),
+                            examples = @ExampleObject(
+                                    name = "duplicateHabitName",
+                                    summary = "Название привычки уже занято",
+                                    value = """
+                                            {
+                                              "status": 409,
+                                              "message": "Habit name already exists!",
+                                              "errors": []
+                                            }
+                                            """
+                            )
+                    )
+            )
+    })
+    @PatchMapping("/{id}")
+    public HabitResponse updateHabit(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Данные для изменения привычки",
+                    required = true
+            )
+            @Valid @RequestBody UpdateHabitRequest request,
+            @Parameter(
+                    description = "ID изменяемой привычки",
+                    required = true,
+                    example = "1"
+            )
+            @PathVariable Long id) {
+        Habit habit = habitService.updateHabit(
+                id,
+                request.getName(),
+                request.getDescription(),
+                request.descriptionPresent()
+        );
+
+        return new HabitResponse(
+                habit.getId(),
+                habit.getName(),
+                habit.getDescription(),
+                habit.isActive()
+        );
+    }
+
 }
