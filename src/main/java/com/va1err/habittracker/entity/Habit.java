@@ -49,4 +49,8 @@ public class Habit {
         this.description = description;
     }
 
+    public void archive() {
+        this.active = false;
+    }
+
 }

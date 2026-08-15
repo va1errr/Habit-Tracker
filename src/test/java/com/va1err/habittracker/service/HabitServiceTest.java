@@ -509,4 +509,26 @@ class HabitServiceTest {
         verify(habitRepository).existsByNameIgnoreCaseAndIdNot("Write poems", testHabitId);
     }
 
+    @Test
+    void archiveHabit_shouldArchiveActiveHabit() {
+        Habit habit = new Habit("Reading", null, true);
+        Long testHabitId = 11L;
+
+        when(habitRepository.findByIdAndActiveTrue(testHabitId)).thenReturn(Optional.of(habit));
+
+        habitService.archiveHabit(testHabitId);
+
+        assertFalse(habit.isActive());
+    }
+
+    @Test
+    void archiveHabit_shouldThrowHabitNotFoundExceptionWhenNoActiveHabitExists() {
+        Long testHabitId = 11L;
+
+        when(habitRepository.findByIdAndActiveTrue(testHabitId)).thenReturn(Optional.empty());
+
+        assertThrows(HabitNotFoundException.class,
+                () -> habitService.archiveHabit(testHabitId));
+    }
+
 }
