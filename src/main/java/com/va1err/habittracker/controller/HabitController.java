@@ -474,4 +474,65 @@ public class HabitController {
         );
     }
 
+    @Operation(
+            summary = "Архивировать привычку",
+            description = "Архивирует активную привычку без удаления истории её выполнений"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Привычка успешно архивирована",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Некорректный формат ID",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorResponse.class),
+                            examples = @ExampleObject(
+                                    name = "invalidHabitId",
+                                    summary = "Некорректный ID",
+                                    value = """
+                                            {
+                                              "status": 400,
+                                              "message": "Invalid request parameter",
+                                              "errors": []
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Активная привычка не найдена",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorResponse.class),
+                            examples = @ExampleObject(
+                                    name = "habitNotFound",
+                                    summary = "Привычка не найдена",
+                                    value = """
+                                            {
+                                              "status": 404,
+                                              "message": "Habit not found",
+                                              "errors": []
+                                            }
+                                            """
+                            )
+                    )
+            )
+    })
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void archiveHabit(
+            @Parameter(
+                    description = "ID архивируемой привычки",
+                    required = true,
+                    example = "1"
+            )
+            @PathVariable Long id) {
+        habitService.archiveHabit(id);
+    }
+
 }

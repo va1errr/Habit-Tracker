@@ -543,4 +543,42 @@ class HabitControllerTest {
 
         verifyNoInteractions(habitService);
     }
+
+    @Test
+    void archiveHabit_shouldReturnNoContent() throws Exception {
+        mockMvc.perform(delete("/api/v1/habits/1"))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+
+        verify(habitService).archiveHabit(1L);
+    }
+
+    @Test
+    void archiveHabit_shouldReturnNotFoundWhenNoActiveHabitExists() throws Exception {
+        doThrow(new HabitNotFoundException()).when(habitService).archiveHabit(1L);
+
+        mockMvc.perform(delete("/api/v1/habits/1"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("Habit not found"))
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors").isEmpty());
+
+        verify(habitService).archiveHabit(1L);
+    }
+
+    @Test
+    void archiveHabit_shouldReturnBadRequestWhenIdIsNotNumber() throws Exception {
+        mockMvc.perform(delete("/api/v1/habits/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").isNotEmpty())
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors").isEmpty());
+
+        verifyNoInteractions(habitService);
+    }
+
 }

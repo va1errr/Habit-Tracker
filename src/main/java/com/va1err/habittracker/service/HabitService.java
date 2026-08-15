@@ -157,4 +157,12 @@ public class HabitService {
         }
     }
 
+    @Transactional
+    public void archiveHabit(Long id) {
+        Habit habit = habitRepository.findByIdAndActiveTrue(id)
+                .orElseThrow(HabitNotFoundException::new);
+
+        habit.archive();
+    }
+
 }
